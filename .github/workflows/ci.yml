@@ -24,7 +24,7 @@ jobs:
             command: make lint
             codecov: false
 
-    runs-on: self-hosted
+    runs-on: ubuntu-22.04
     steps:
       - name: Go version used to build builder
         run: go version
