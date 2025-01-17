@@ -1,0 +1,7 @@
+.idea
+.vscode
+/bin
+/coverage
+vendor
+*.iml
+.DS_Store
