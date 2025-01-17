@@ -1,0 +1,43 @@
+#!/bin/bash
+
+set -e
+
+export SOURCE_DIR=$(pwd)
+
+# go to root dir of repository
+pushd "$(dirname "${BASH_SOURCE[0]}")/.." > /dev/null
+
+VERSION=$(git rev-parse --short HEAD)
+REPO=$(pwd)
+BUILD_BIN="$REPO/bin/.cache/build-$VERSION"
+
+if [ ! -f "$BUILD_BIN" ]; then
+  rm -f ./bin/.cache/znet*
+
+  pushd build > /dev/null
+  go build -trimpath -o "$BUILD_BIN" ./cmd/builder
+  popd > /dev/null
+
+  "$BUILD_BIN" build/me
+fi
+
+case "$1" in
+
+   "build")
+      shift 1
+      exec "$BUILD_BIN" "$@"
+      ;;
+
+   *)
+      MODULE="github.com/CoreumFoundation/znet"
+      VERSION_TMPL='{{ if or (.Replace) (eq .Version "") }}devel{{ else }}{{ .Version }}{{ end }}'
+      ZNET_VERSION=$(go list -m -f "$VERSION_TMPL" "$MODULE")
+      ZNET_BIN="$REPO/bin/.cache/znet-${ZNET_VERSION}"
+
+      if [ ! -f "$ZNET_BIN" ]; then
+        "$BUILD_BIN" znet
+      fi
+
+      exec "$ZNET_BIN" "$@"
+     ;;
+esac
